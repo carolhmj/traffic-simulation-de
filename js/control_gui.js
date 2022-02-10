@@ -916,7 +916,7 @@ function downloadCallback(){
   else{
     for(var i=0; i<network.length; i++){
       network[i].exportString
-        ="#time\tid\tx[m]\ty[m]\tspeed[m/s]\theading\tacc[m/s^2]";
+        =`#time${SEPARATOR}id${SEPARATOR}x[m]${SEPARATOR}y[m]${SEPARATOR}speed[m/s]${SEPARATOR}heading${SEPARATOR}acc[m/s^2]${SEPARATOR}lastX[pixel]${SEPARATOR}lastY[pixel]`;
     }
     downloadActive=true;
     document.getElementById("download").src="figs/iconDownloadFinish_small.png";

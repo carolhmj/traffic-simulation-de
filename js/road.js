@@ -7,10 +7,6 @@
 //console.log(Math.random());          //s Always 0.9364577392619949 with 42
 Math.seedrandom(44); // !! re-start reproducibly (undo console logs)
 
-
-
-
-
 //#############################################################
 // road segment (link) incl physical vehicle dynamics
 //#############################################################
@@ -568,12 +564,14 @@ road.prototype.updateExportString=function(){
       var heading=(this.veh[i].speed>1e-4)
 	  ? this.veh[i].dvdt/this.veh[i].speed : 0;
       this.exportString=this.exportString+"\n"+time.toFixed(2)
-        + "\t"+this.veh[i].id
-        + "\t"+this.veh[i].u.toFixed(2)
-        + "\t"+this.veh[i].v.toFixed(2)
-        + "\t"+this.veh[i].speed.toFixed(2)
-        + "\t\t"+heading.toFixed(2)
-        + "\t"+this.veh[i].acc.toFixed(2)
+        + SEPARATOR+this.veh[i].id
+        + SEPARATOR+this.veh[i].u.toFixed(2)
+        + SEPARATOR+this.veh[i].v.toFixed(2)
+        + SEPARATOR+this.veh[i].speed.toFixed(2)
+        + SEPARATOR+heading.toFixed(2)
+        + SEPARATOR+this.veh[i].acc.toFixed(2)
+        + SEPARATOR+this.veh[i].lastX.toFixed(2)
+        + SEPARATOR+this.veh[i].lastY.toFixed(2)
         +"";
     }
   }
@@ -3730,7 +3728,8 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 			   - yOffset);
     }
 
-
+    this.veh[i].lastX = xCenterPix;
+    this.veh[i].lastY = yCenterPix;
     // (4) draw vehicle as image
 
     var obstacleImg;

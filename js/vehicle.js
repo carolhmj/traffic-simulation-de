@@ -54,6 +54,9 @@ function vehicle(length, width, u, lane, speed, type){
     // just start values used for virtual vehicles
     this.longModel=new ACC(20,1.3,2,1,2);//IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
     this.LCModel=new MOBIL(4,20,0.1,0.2,0.3); //bSafe, bSafeMax, p, bThr, biasRight)
+
+    this.lastX = 0; // last x pixel coordinate the vehicle has occupied
+    this.lastY = 0; // last y pixel coordinate the vehicle has occupied
 }
 
 
