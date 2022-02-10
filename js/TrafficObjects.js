@@ -87,6 +87,7 @@ look for ".copy" in other js files
 @param nCol:      number of cols (nRow*nCol=#objects should be >=nTL+nLimit)
 */
 
+var objectsZoomBack=false;
 
 function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
 
@@ -143,6 +144,7 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
   for (var i=0; i<Math.min(this.nObst, this.nObstMax); i++){
     this.imgObstRepo[i]=new Image();
     this.imgObstRepo[i].src = "figs/obstacle_"+(50+i)+".png";
+    console.log("i=",i," this.imgObstRepo[i].src=",this.imgObstRepo[i].src);
   }
 
 
@@ -162,8 +164,10 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
     
     var img=(isTL) ? this.imgTLred : (isSpeedl)
       ? this.imgSpeedlRepo[initSpeedInd[iSpeed]] : this.imgObstRepo[iObst];
-    //console.log("TrafficObjects cstr: i=",i,
-//		" img=",img," iObst=",iObst);
+    if(true){
+      console.log("TrafficObjects cstr: i=",i,
+		  " img=",img," iObst=",iObst);
+    }
 
     //#################################################################
     // xxx central object this.trafficObj[i]
@@ -283,7 +287,7 @@ TrafficObjects.prototype.calcDepotPositions=function(canvas){
 
 TrafficObjects.prototype.draw=function(){
 
-
+  //console.log("in TrafficObjects.draw");
   var crossingLineWidth=1;   // width[m] of white line at sign/TL
 
 
@@ -311,11 +315,11 @@ TrafficObjects.prototype.draw=function(){
 
       var crossingLineLength=road.nLanes*road.laneWidth;
 
-      var xCenterPix=  scale*road.traj_x(obj.u);
-      var yCenterPix= -scale*road.traj_y(obj.u); // minus!!
+      var xCenterPix=  scale*road.traj[0](obj.u);
+      var yCenterPix= -scale*road.traj[1](obj.u); // minus!!
       var wPix=scale*crossingLineWidth;
       var lPix=scale*crossingLineLength;
-      var phi=road.get_phi(obj.u);
+      var phi=road.get_phi(obj.u, road.traj);
       var cphi=Math.cos(phi);
       var sphi=Math.sin(phi);
 
@@ -571,12 +575,19 @@ TrafficObjects.prototype.pickObject=function(xPixUser, yPixUser, distCritPix){
 }
 
 
+//######################################################################
+// position an object
+//######################################################################
+
+/*
+calculate x,y by roads's trajectory and u and apply this.dropObject
+ */
 
 //######################################################################
 // drop an object
 //######################################################################
 
-/** 
+/*
 
   * drop the selected object. 
   * If the global var isDragged=false, restore the state before picking
@@ -743,7 +754,7 @@ TrafficObjects.prototype.selectSignOrTL=function(xPixUser,yPixUser){
 }
 
 //#############################################################
-// programmatic setting of a traffic light (only BaWue as of 2021-11)
+// programmatic setting of a traffic light
 //#############################################################
 
 /** 
@@ -762,7 +773,7 @@ TrafficObjects.prototype.setTrafficLight=function(obj, value){
   obj.value=value;
   obj.image=(obj.value==='red') ? this.imgTLred : this.imgTLgreen;
   if(obj.isActive){ // then, obj has a road reference
-    obj.road.changeTrafficLight(obj.id, obj.value); //(3) das macht den Fuck
+    obj.road.changeTrafficLight(obj.id, obj.value); 
   }
 
   if(false){
@@ -833,12 +844,14 @@ automatic action at every timestep w/o GUI interaction
 
 
 TrafficObjects.prototype.zoomBack=function(){
+  objectsZoomBack=false;
   var relDisplacementPerCall=0.02; // zooms back as attached to a rubber band
   var pixelsPerCall=relDisplacementPerCall*this.sizeCanvas;
   for(var i=0; i<this.trafficObj.length; i++){
     var obj=this.trafficObj[i];
     if((!obj.isActive)&&(!obj.inDepot)&&(!obj.isDragged)&&(!obj.isPicked)){
-      userCanvasManip=true; 
+      userCanvasManip=true;
+      objectsZoomBack=true;
       var dx=obj.xPixDepot-obj.xPix;
       var dy=obj.yPixDepot-obj.yPix;
       var dist=Math.sqrt(dx*dx+dy*dy);

@@ -1,6 +1,6 @@
 // types: "car", "truck", "obstacle" (including red traffic lights)
 // id's defined mainly in vehicle.js and ObstacleTLDepot.js
-// id<100:              special vehicles/road objects
+// id<200:              special vehicles/road objects
 // id=1:                ego vehicle
 // id=10,11, ..49       disturbed vehicles 
 // id=50..99            depot vehicles/obstacles (vehicle.isDepotObstacle())
@@ -11,7 +11,7 @@
 var ivehCount=0;
 
 function vehicle(length, width, u, lane, speed, type){
-    this.length=length; // car length[m]
+    this.len=length; // car length[m]
     this.width=width;   // car width[m]
     this.u=u;           // long coordinate=arc length [m]
     this.lane=lane;     // integer-valued lane 0=leftmost
@@ -36,7 +36,9 @@ function vehicle(length, width, u, lane, speed, type){
     this.dt_LC=4;
     this.dt_afterLC=10;
     this.dt_lastPassiveLC=10;
-    this.acc=0;
+  this.acc=0;
+
+  this.conflictsExist=false; // for intersections: road.connect
     this.iLead=-100;
     this.iLag=-100;
     //this.iLeadOld=-100; // necessary for update local environm after change

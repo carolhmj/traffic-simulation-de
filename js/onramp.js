@@ -16,9 +16,11 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 */
 
 
-var userCanDistortRoads=false; // only if true, road.gridTrajectories after
-//var userCanDistortRoads=true;  // external changes called
-var userCanDropObjects=true;
+const userCanDistortRoads=false; // only if true, road.gridTrajectories after
+const userCanDropObjects=true;
+var drawVehIDs=false; // debug: draw veh IDs for selected roads
+// (must propagate to network, e.g. network[0].drawVehIDs=drawVehIDs; )
+var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 
 
@@ -67,8 +69,13 @@ var nLanes_rmp=1;
 ######################################################*
 */
 
+// scenarioString needed in
+// (1) showInfo (control_gui) if info panels are shown
+// (2) handleDependencies (canvas_gui) if userCanDistortRoads=true
+// (3) road: handle some exceptional behavior in the "*BaWue*" scenarios
+// otherwise not needed
 
-var scenarioString="OnRamp"; // needed in handleDependencies in canvas_gui
+var scenarioString="OnRamp"; 
 console.log("\n\nstart main: scenarioString=",scenarioString);
 
 
@@ -101,14 +108,12 @@ var critAspectRatio=120./95.; // from css file width/height of #contents
 var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 var scale=refSizePix/refSizePhys;
 
-//xxxnew [position]
+
 var hasChanged=true; // window or physical dimensions have changed
 var hasChangedPhys=true; // physical road dimensions have changed 
                           // in last updateDimensions
                           // (only true when switching from/to mobile version)
 
-
-//xxxnew
 //<NETWORK>
 //##################################################################
 // init Specification of physical road network geometry
@@ -123,7 +128,6 @@ var arcRadiusRel=0.35;
 var rampLenRel=0.95;
 
 
-// xxxnew
 // !!slight double-coding with updateDimensions unavoidable since
 // updateDimensions needs roads (mainroad.roadLen ...) 
 // which are not yet defined here
@@ -153,7 +157,6 @@ function updateDimensions(){ // if viewport or sizePhys changed
   center_xPhys=center_xRel*refSizePhys; //[m]
   center_yPhys=center_yRel*refSizePhys;
 
-  //xxxnew
   // redefine basis of traj*_x, traj*_y or traj_x[], traj_y[]
   // if hasChangedPhys=true
 
@@ -161,19 +164,19 @@ function updateDimensions(){ // if viewport or sizePhys changed
     arcRadius=arcRadiusRel*refSizePhys;
     arcLen=arcRadius*Math.PI;
     straightLen=refSizePhys*critAspectRatio-center_xPhys;
-    mainroadLen=mainroad.roadLen=arcLen+2*straightLen; //xxxnew
-    rampLen=ramp.roadLen=rampLenRel*refSizePhys; //xxxnew
+    mainroadLen=mainroad.roadLen=arcLen+2*straightLen; 
+    rampLen=ramp.roadLen=rampLenRel*refSizePhys; 
     mergeLen=0.5*rampLen;
     mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
     taperLen=0.2*rampLen;
     rampRadius=4*arcRadius;
 
-    // xxxnew bring traj to roads 
+    // bring traj to roads 
     // not needed if doGridding is false since then external traj reference
   
     if(userCanDistortRoads){
       for(var i=0; i<network.length; i++){
-	network[i].gridTrajectories(trajNet_x[i], trajNet_y[i]);
+	network[i].gridTrajectories(trajNet[i]);
       }
     }
   
@@ -181,7 +184,7 @@ function updateDimensions(){ // if viewport or sizePhys changed
     // (e.g. onramp: ramp via the ref virtualStandingVeh)
     // see "Specification of logical road network" below
 
-    virtualStandingVeh.u=ramp.roadLen-0.9*taperLen; //xxxnew
+    virtualStandingVeh.u=ramp.roadLen-0.9*taperLen;
 
   }
   
@@ -199,8 +202,8 @@ function updateRampGeometry(){
   // crucial: correct x/y attachment at begin of merge 
   // (assume heading=0 @ merge for the moment)
 
-  xRamp[nArrRamp-1]=traj_x(mainRampOffset+rampLen-mergeLen)+mergeLen;
-  yRamp[nArrRamp-1]=traj_y(mainRampOffset+rampLen-mergeLen)
+  xRamp[nArrRamp-1]=traj[0](mainRampOffset+rampLen-mergeLen)+mergeLen;
+  yRamp[nArrRamp-1]=traj[1](mainRampOffset+rampLen-mergeLen)
     -0.5*laneWidth*(nLanes_main-nLanes_rmp);
 
   for(var i=nArrRamp-2; i>=0; i--){
@@ -267,7 +270,7 @@ function traj_y(u){ // physical coordinates
 	return center_yPhys+dyPhysFromCenter;
 }
 
-
+var traj=[traj_x,traj_y];
 
 // !! in defining dependent geometry,
 // do not refer to mainroad or onramp!! may not be defined: 
@@ -284,7 +287,7 @@ function trajRamp_x(u){ // physical coordinates
 
 function trajRamp_y(u){ // physical coordinates
 
-  var yMergeBegin=traj_y(mainRampOffset+rampLen-mergeLen)
+  var yMergeBegin=traj[1](mainRampOffset+rampLen-mergeLen)
 	-0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
 
   var yMergeEnd=yMergeBegin+laneWidth;
@@ -294,15 +297,13 @@ function trajRamp_y(u){ // physical coordinates
     : yMergeBegin+taperMerge(u,taperLen,laneWidth,rampLen);
 }
 
-var trajNet_x=[]; // xxxnew 
-var trajNet_y=[];
-trajNet_x[0]=traj_x;
-trajNet_x[1]=trajRamp_x;
-trajNet_y[0]=traj_y;
-trajNet_y[1]=trajRamp_y;
+var trajRamp=[trajRamp_x,trajRamp_y];
+
+var trajNet=[];
+trajNet[0]=traj;
+trajNet[1]=trajRamp;
 
 
-//xxxnew [comment, separated veh from road properties]
 //###################################################
 // specification of road width and vehicle sizes
 // remains constant => road becomes more compact for smaller screens
@@ -337,17 +338,17 @@ var speedInit=20; // IC for speed
 
   //userCanDistortRoads=true; //!! test  
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
-		      traj_x,traj_y,
+		      traj,
 		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
-		    trajRamp_x,trajRamp_y,
+		    trajRamp,
 		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
 
-// road network 
+// road network (network declared in canvas_gui.js)
 
-network[0]=mainroad;  // network declared in canvas_gui.js
-network[1]=ramp;
+network[0]=mainroad;  network[0].drawVehIDs=drawVehIDs;
+network[1]=ramp; network[1].drawVehIDs=drawVehIDs;
 
 
 // add standing virtual vehicle at the end of ramp (1 lane)
@@ -453,11 +454,13 @@ rampImg=roadImgs1[nLanes_rmp-1];
 
 // need to define canvas prior to calling cstr: e.g.,
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
-var trafficObjs=new TrafficObjects(canvas,1,3,0.60,0.50,3,2);
+//var trafficObjs=new TrafficObjects(canvas,1,3,0.60,0.50,3,2);
+var trafficObjs=new TrafficObjects(canvas,2,2,0.40,0.50,3,2);
 
 // also needed to just switch the traffic lights
 // (then args xRelEditor,yRelEditor not relevant)
-var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
+//var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.33,0.68);
 
 
 
@@ -475,7 +478,6 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
-  //xxxnew
   // (1) update times and, if canvas change, 
   // scale and, if smartphone<->no-smartphone change, physical geometry
 
@@ -605,7 +607,7 @@ function updateSim(){
       ramp.writeVehiclesSimple();
     }
 
-    if(false){
+    if(true){
       onlyTL=true;
       trafficObjs.writeObjects(onlyTL); //the trafficObjs general TL objects
       onlyTL=true;
@@ -634,7 +636,6 @@ function drawSim() {
   var movingObserver=false;
   var uObs=0*time;
 
-  //xxxnew [vieles nach updateSim]
   // (1) adapt text size
  
   var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02;
@@ -674,8 +675,8 @@ function drawSim() {
   ramp.draw(rampImg,rampImg,scale,changedGeometry,
 	    0,ramp.roadLen,
 	    movingObserver,0,
-	    center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
-	    center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
+	    center_xPhys-mainroad.traj[0](uObs)+ramp.traj[0](0),
+	    center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0)); 
 
   mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
 		0,mainroad.roadLen,
@@ -698,8 +699,8 @@ function drawSim() {
 		    vmin_col,vmax_col,
 		    0,ramp.roadLen,
 		    movingObserver,0,
-		    center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
-		    center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0));
+		    center_xPhys-mainroad.traj[0](uObs)+ramp.traj[0](0),
+		    center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0));
 
 
   mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
@@ -745,7 +746,7 @@ function drawSim() {
 		 scaleStr_ylb-0.2*textsize);
   }
 
-      // (7) draw the speed colormap
+      // (6b) draw the speed colormap
       //!! Now always false; drawn statically by html file!
 
   if(drawColormap){
@@ -754,12 +755,20 @@ function drawSim() {
                    0.1*refSizePix, 0.2*refSizePix,
 		   vmin_col,vmax_col,0,100/3.6);
   }
+
   
+  // drawSim (7): show logical coordinates if activated
+
+  if(showCoords&&mouseInside){
+    showLogicalCoords(xPixUser,yPixUser);
+  }
+
+
   // may be set to true in next step if changed canvas 
   // (updateDimensions) or if old sign should be wiped away 
 
   hasChanged=false;
-  hasChangedPhys=false; //xxxnew
+  hasChangedPhys=false; 
 
   // revert to neutral transformation at the end!
 

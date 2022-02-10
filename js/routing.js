@@ -1,7 +1,7 @@
 
-//var userCanDistortRoads=false; // only if true, road.gridTrajectories after
-var userCanDistortRoads=false; 
-var userCanDropObjects=true;
+//const userCanDistortRoads=false; // only if true, road.gridTrajectories after
+const userCanDistortRoads=false; 
+const userCanDropObjects=true;
 
 //#############################################################
 // adapt standard param settings from control_gui.js
@@ -340,9 +340,11 @@ var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var isRing=false; 
 
-var mainroad=new road(1,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
+var mainroad=new road(1,mainroadLen,laneWidth,nLanes_main,
+		      [traj_x,traj_y],
 		      density,speedInit,fracTruck,isRing);
-var ramp=new road(2,lDev,laneWidthRamp,nLanes_rmp,trajRamp_x,trajRamp_y,
+var ramp=new road(2,lDev,laneWidthRamp,nLanes_rmp,
+		  [trajRamp_x,trajRamp_y],
 		       0.1*density,speedInit,fracTruck,isRing);
 
 network[0]=mainroad;

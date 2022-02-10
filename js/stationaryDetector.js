@@ -16,9 +16,10 @@ microscopic output also gives the lane index of the passage event
 
 function stationaryDetector(road,u,dtAggr){
     //console.log("in stationaryDetector cstr: road=",road);
-    this.road=road;
-    this.u=u;
-    this.dtAggr=dtAggr;
+  this.road=road;
+  this.u=u;
+  this.dtAggr=dtAggr;
+  this.exportString=""; // for export to file
 
     if(this.u>road.roadLen){
 	console.log("Warning: trying to place a detector at position u=",
@@ -63,6 +64,9 @@ stationaryDetector.prototype.update=function(time,dt){
       this.historySpeed[this.iAggr]=this.speedSum/this.vehCount;
       this.vehCount=0;
       this.speedSum=0;
+
+      if(downloadActive){this.updateExportString();}
+      
       if(false){
 	console.log("\nnew aggregation:",
 		    " this.historyFlow[",this.iAggr,"]=",
@@ -72,6 +76,31 @@ stationaryDetector.prototype.update=function(time,dt){
       }
     }
 }
+
+
+stationaryDetector.prototype.updateExportString=function(){
+
+  var rest=time/this.dtAggr-Math.floor((time+0.0001)/this.dtAggr);
+  
+  if(rest<dt-0.0001){
+    var flowStr=Math.round(3600*this.historyFlow[this.iAggr])
+    var speedStr=((this.historyFlow[this.iAggr]>0)
+		  ? Math.round(3.6*this.historySpeed[this.iAggr])
+		  : "--");
+    this.exportString=this.exportString+"\n"+time.toFixed(0)
+      +"\t\t"+flowStr+"\t\t"+speedStr;
+    
+  }
+}
+ 
+stationaryDetector.prototype.writeToFile= function(filename){
+  console.log("\nin road.writeVehiclesSimpleToFile(): roadID=",this.road.roadID,
+	      " filename=",filename);
+  
+  console.log("stationaryDetector.exportString=\n",this.exportString);
+  download(this.exportString, filename); // download(.) in control_gui.js
+}
+
 
 
 stationaryDetector.prototype.reset=function(){
@@ -102,7 +131,7 @@ stationaryDetector.prototype.display=function(textsize){
 	
  
 
-    var phi=this.road.get_phi(this.u);
+    var phi=this.road.get_phi(this.u,this.road.traj);
     var cphi=Math.cos(phi);
     var sphi=Math.sin(phi);
     
@@ -121,10 +150,10 @@ stationaryDetector.prototype.display=function(textsize){
     var detLineDist=2;     // dist of the loops of double-loop detector [m]
     var detLineLength=this.road.nLanes*this.road.laneWidth;
 
-    var xCenterPix1=  scale*this.road.traj_x(this.u-0.5*detLineDist);
-    var yCenterPix1= -scale*this.road.traj_y(this.u-0.5*detLineDist);//minus!!
-    var xCenterPix2=  scale*this.road.traj_x(this.u+0.5*detLineDist);
-    var yCenterPix2= -scale*this.road.traj_y(this.u+0.5*detLineDist); 
+    var xCenterPix1=  scale*this.road.traj[0](this.u-0.5*detLineDist);
+  var yCenterPix1= -scale*this.road.traj[1](this.u-0.5*detLineDist);//minus!!
+    var xCenterPix2=  scale*this.road.traj[0](this.u+0.5*detLineDist);
+    var yCenterPix2= -scale*this.road.traj[1](this.u+0.5*detLineDist); 
     var wPix=scale*detLineWidth;
     var lPix=scale*detLineLength;
 

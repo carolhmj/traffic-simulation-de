@@ -18,8 +18,8 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 // remove localStorage items by hand (the " " are crucial!)
 // localStorage.removeItem("storageName");
 
-var userCanDropObjects=true;
-var userCanDistortRoads=false; // only if true, road.gridTrajectories after
+const userCanDropObjects=true;
+const userCanDistortRoads=false; // only if true, road.gridTrajectories after
 
 
 
@@ -431,11 +431,11 @@ var speedInit=20; // IC for speed
 
   //userCanDistortRoads=true; //!! test  
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
-		      traj_x,traj_y,
+		      [traj_x,traj_y],
 		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
-		    trajRamp_x,trajRamp_y,
+		    [trajRamp_x,trajRamp_y],
 		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
 
 // road network 
@@ -788,8 +788,8 @@ function drawSim() {
   ramp.draw(rampImg,rampImg,scale,changedGeometry,
 	    0,ramp.roadLen,
 	    movingObserver,0,
-	    center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
-	    center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
+	    center_xPhys-mainroad.traj[0](uObs)+ramp.traj[0](0),
+	    center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0)); 
 
   mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
 		0,mainroad.roadLen,
@@ -812,8 +812,8 @@ function drawSim() {
 		    vmin_col,vmax_col,
 		    0,ramp.roadLen,
 		    movingObserver,0,
-		    center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
-		    center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0));
+		    center_xPhys-mainroad.traj[0](uObs)+ramp.traj[0](0),
+		    center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0));
 
 
   mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,

@@ -26,7 +26,7 @@ var isStopped=false; // only initialization
 function myStartStopFunction(){ 
 
     clearInterval(myRun);
-    console.log("in myStartStopFunction: isStopped=",isStopped);
+    //console.log("in myStartStopFunction: isStopped=",isStopped);
 
     //!!
     if(isStopped){
@@ -48,6 +48,7 @@ function myStartStopFunction(){
 
 function myRestartFunction(){ 
   time=0;
+  itime=0;
   var i=0;
 
   for(var i=0; i<network.length; i++){
@@ -114,9 +115,28 @@ function showHideTLeditPanel(){
 }
 
 
+//#########################################################
+// gui-definition of type of intersection
+// rightPrio is as 4wayStop but most complicated: no stop mandatory
+//#########################################################
+
+
+var intersectionType={0:"signalized",1:"priority",2:"4wayStop",3:"prioRight"};
+
+
+function handleIntersectionType(index){
+  intersectionIndex=index;
+  console.log("in handleIntersectionType: index=",index,
+	      " intersectionType=",intersectionType[index]);
+}
+
+// (and handleChangedOD from the rounabout section below)
+
+
 
 //#########################################################
-// give-way rules switch for roundabout (vars respectRingPrio, respectRightPrio)
+// give-way rules switch for roundabout
+// (vars respectRingPrio, respectRightPrio)
 //#########################################################
 
 
@@ -136,7 +156,7 @@ function handleChangedPriority(index){
 }
 
 
-// roundabout: change OD options
+// roundabout and intersections: change OD options
 // options={straight,right,left,all}
 
 function handleChangedOD(index){
@@ -210,7 +230,7 @@ function updateHighscores(nickName,newScore,storageName){
     var str_highScores="<h1> Game Finished!</h1> Your time is "
 	+newScore+" Seconds"
 	+"<h2>Highscore list:</h2>"
-	+"<table border=\"0\" cellspacing=\"1\" cellpadding=\"3\">"
+	+"<table border=\"0\" cellspacing=\"1\" cellvisibilityExt=\"3\">"
 	//+"<tr><th> name</th><th>score [s]</th><th>time</th></tr>";
 	+"<tr><th>rank</th><th> name</th><th>score [s]</th></tr>";
 
@@ -274,6 +294,10 @@ function showInfo(){
    // scenarioFile is dynamically determined 
    // e.g., "info/info_"+scenarioString+".html"
 
+  //dos not work
+  //if(infoLevel===0){document.getElementById("infotext").innerHTML="info/info_gui.html"}
+
+  
     if(infoLevel===0){$("#infotext").load("info/info_gui.html");}
     else if(infoLevel===1){$("#infotext").load(scenarioFile);}
     else if(infoLevel===2){$("#infotext").load("info/info_IDM.html");}
@@ -404,7 +428,7 @@ function toggleTruckOvertakingBan(){
 function setSlider(slider, sliderHTMLval, value, commaDigits, str_units){
   var formattedValue=value.toFixed(commaDigits);
   slider.value=value;
-  sliderHTMLval.innerHTML=formattedValue+" "+str_units;
+  sliderHTMLval.innerHTML=formattedValue+" "+str_units; // +" " DOS=>str_units
   console.log("setSlider: value=",value
 	      ," innerHTML=",sliderHTMLval.innerHTML);
 }
@@ -417,11 +441,11 @@ var slider_timewarp,slider_timewarpVal;
 if(document.getElementById("slider_timewarp")!==null){
     slider_timewarp = document.getElementById("slider_timewarp");
     slider_timewarpVal = document.getElementById("slider_timewarpVal");
-    slider_timewarpVal.innerHTML=timewarp +"times";
+    slider_timewarpVal.innerHTML=timewarp +" times";
     slider_timewarp.value=timewarp;
 
     slider_timewarp.oninput = function() {
-        slider_timewarpVal.innerHTML = this.value +"times";
+        slider_timewarpVal.innerHTML = this.value +" times";
         timewarp=parseFloat(this.value);
         dt=timewarp/fps;
     }
@@ -460,6 +484,23 @@ if(document.getElementById("slider_qIn")!==null){
     }
 }
 
+// second flow slider
+
+var q2=900/3600.; //total onramp flow of onramp scenario
+var slider_q2,slider_q2Val;
+if(document.getElementById("slider_q2")!==null){
+    slider_q2= document.getElementById("slider_q2");
+    slider_q2Val = document.getElementById("slider_q2Val");
+    slider_q2.value=3600*q2;
+    slider_q2Val.innerHTML=3600*q2+" veh/h";
+
+    slider_q2.oninput = function() {
+        slider_q2Val.innerHTML = this.value+" veh/h";
+        q2=parseFloat(this.value/3600.);
+    }
+}
+
+
 
 // ramp flow slider
 
@@ -488,10 +529,10 @@ if(document.getElementById("slider_fracTruck")!==null){
     slider_fracTruck = document.getElementById("slider_fracTruck");
     slider_fracTruckVal = document.getElementById("slider_fracTruckVal");
     slider_fracTruck.value=100*fracTruck;
-    slider_fracTruckVal.innerHTML=100*fracTruck+"%";
+    slider_fracTruckVal.innerHTML=100*fracTruck+" %";
 
     slider_fracTruck.oninput = function() {
-        slider_fracTruckVal.innerHTML = this.value+"%";
+        slider_fracTruckVal.innerHTML = this.value+" %";
         fracTruck=parseFloat(this.value/100.);
     }
 }
@@ -506,10 +547,10 @@ if(document.getElementById("slider_density")!==null){
     slider_density = document.getElementById("slider_density");
     slider_densityVal = document.getElementById("slider_densityVal");
     slider_density.value=1000*density;
-    slider_densityVal.innerHTML=1000*density+"/km";
+    slider_densityVal.innerHTML=1000*density+" veh/km";
 
     slider_density.oninput = function() {
-        slider_densityVal.innerHTML = this.value+"/km";
+        slider_densityVal.innerHTML = this.value+" veh/km";
         density=parseFloat(this.value/1000.);
     }
 }
@@ -525,10 +566,10 @@ if(document.getElementById("slider_fracOff")!==null){
     slider_fracOff = document.getElementById("slider_fracOff");
     slider_fracOffVal = document.getElementById("slider_fracOffVal");
     slider_fracOff.value=100*fracOff;
-    slider_fracOffVal.innerHTML=100*fracOff+"%";
+    slider_fracOffVal.innerHTML=100*fracOff+" %";
 
     slider_fracOff.oninput = function() {
-        slider_fracOffVal.innerHTML = this.value+"%";
+        slider_fracOffVal.innerHTML = this.value+" %";
         fracOff=parseFloat(this.value/100.);
     }
 }
@@ -538,15 +579,15 @@ if(document.getElementById("slider_fracOff")!==null){
 var mainFrac=0.75; 
 var slider_mainFrac, slider_mainFracVal;
 if(document.getElementById("slider_mainFrac")!==null){
-    slider_mainFrac = document.getElementById("slider_mainFrac");
-    slider_mainFracVal = document.getElementById("slider_mainFracVal");
-    slider_mainFrac.value=100*mainFrac;
-    slider_mainFracVal.innerHTML=100*mainFrac+"%";
+  slider_mainFrac = document.getElementById("slider_mainFrac");
+  slider_mainFracVal = document.getElementById("slider_mainFracVal");
+  slider_mainFrac.value=100*mainFrac;
+  slider_mainFracVal.innerHTML=100*mainFrac+" %";
 
-    slider_mainFrac.oninput = function() {
-        slider_mainFracVal.innerHTML = this.value+"%";
-        mainFrac=parseFloat(this.value/100.);
-    }
+  slider_mainFrac.oninput = function() {
+    slider_mainFracVal.innerHTML = this.value+" %";
+    mainFrac=parseFloat(this.value/100.);
+  }
 }
 
 
@@ -575,12 +616,46 @@ if(document.getElementById("slider_focusFrac")!==null){
     slider_focusFrac = document.getElementById("slider_focusFrac");
     slider_focusFracVal = document.getElementById("slider_focusFracVal");
     slider_focusFrac.value=100*focusFrac;
-    slider_focusFracVal.innerHTML=100*focusFrac+"%";
+    slider_focusFracVal.innerHTML=100*focusFrac+" %";
 
     slider_focusFrac.oninput = function() {
-        slider_focusFracVal.innerHTML = this.value+"%";
+        slider_focusFracVal.innerHTML = this.value+" %";
         focusFrac=parseFloat(this.value/100.);
     }
+}
+
+
+// right percentage slider (intersections) in [0,1]
+
+var fracRight=0.2;
+var slider_fracRight, slider_fracRightVal;
+if(document.getElementById("slider_fracRight")!==null){
+  slider_fracRight = document.getElementById("slider_fracRight");
+  slider_fracRightVal = document.getElementById("slider_fracRightVal");
+  slider_fracRight.value=100*fracRight;
+  slider_fracRightVal.innerHTML=100*fracRight+" %";
+
+  slider_fracRight.oninput = function() {
+    slider_fracRightVal.innerHTML = this.value+" %";
+    fracRight=parseFloat(this.value/100.);
+  }
+}
+
+
+// left percentage slider (intersections) in [0,1] (rest straight on)
+
+var fracLeft=0.2;
+var slider_fracLeft, slider_fracLeftVal;
+if(document.getElementById("slider_fracLeft")!==null){
+  slider_fracLeft = document.getElementById("slider_fracLeft");
+  slider_fracLeftVal = document.getElementById("slider_fracLeftVal");
+  slider_fracLeft.value=100*fracLeft;
+  slider_fracLeftVal.innerHTML=100*fracLeft+" %";
+
+  slider_fracLeft.oninput = function() {
+    slider_fracLeftVal.innerHTML = this.value+" %";
+    fracLeft=parseFloat(this.value/100.);
+  }
 }
 
 
@@ -834,7 +909,7 @@ var MOBIL_mandat_bThr=0;   // to be specified below
 var MOBIL_mandat_p=0;
 var MOBIL_mandat_bias=42;
 
-// define truck longModel as f(car longModel)v0 limited by speed limit
+// define truck longModel as f(car longModel) v0 limited by speed limit
 
 var factor_v0_truck=1; 
 var factor_a_truck=1.0;
@@ -882,8 +957,8 @@ function updateModelsUphill(){
     longModelTruckUphill=new ACC(IDM_v0Up,T_truck,IDM_s0,a_truck,IDM_b);
     LCModelCarUphill=LCModelCar;
     LCModelTruckUphill=(banIsActive) ? LCModelMandatory : LCModelTruck;
-    console.log("control_gui.updateModelsUphill: LCModelTruckUphill=",
-		LCModelTruckUphill);
+    //console.log("control_gui.updateModelsUphill: LCModelTruckUphill=",
+//		LCModelTruckUphill);
 }
 
 // example for changing sliders from standard init setting in gui
@@ -913,10 +988,21 @@ function downloadCallback(){
     document.getElementById("download").src="figs/iconDownloadStart_small.png";
   }
   
-  else{
+  else{ // title/header lines
     for(var i=0; i<network.length; i++){
       network[i].exportString
         =`#time${SEPARATOR}id${SEPARATOR}x[m]${SEPARATOR}y[m]${SEPARATOR}speed[m/s]${SEPARATOR}heading${SEPARATOR}acc[m/s^2]${SEPARATOR}lastX[pixel]${SEPARATOR}lastY[pixel]`;
+    }
+
+    if(typeof detectors!=="undefined"){
+      for (var iDet=0; iDet<detectors.length; iDet++){
+        var det=detectors[iDet];
+        console.log("det=",det);
+        det.exportString="#Detector "+iDet
+ 	  +" at road "+det.road.roadID+" at position x="+det.u.toFixed(0)
+	  + " aggregation time [s]="+det.dtAggr
+	  +"\n#time[s]\tflow[veh/h]\tspeed[km/h]";
+      }
     }
     downloadActive=true;
     document.getElementById("download").src="figs/iconDownloadFinish_small.png";
@@ -931,6 +1017,16 @@ function performDownload(){
     msg=msg+filename+" ";
     network[i].writeVehiclesSimpleToFile(filename);
   }
+  if(typeof detectors!=="undefined"){
+    for (var iDet=0; iDet<detectors.length; iDet++){
+      var filename="Detector"+iDet
+        +"_road"+detectors[iDet].road.roadID
+        +"_x"+detectors[iDet].u.toFixed(0)+"_time"+time.toFixed(0)+".txt";
+      msg=msg+filename+" ";
+      detectors[iDet].writeToFile(filename);
+    }
+  }
+
   msg="wrote files "+msg+" to default folder (Downloads)";
   downloadActive=false;
   alert(msg);

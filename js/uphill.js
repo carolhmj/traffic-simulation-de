@@ -1,6 +1,8 @@
+// !!!! userCanDistortRoads not possible in new version
+// because var functions cannot be passed if manipulated inside
+const userCanDistortRoads=false; //!!! Not possible in new version; f... 
 
-var userCanDistortRoads=true;
-var userCanDropObjects=true;
+const userCanDropObjects=true;
 
 //#############################################################
 // override standard param settings from control_gui.js
@@ -191,7 +193,8 @@ var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var speedInit=20; // m/s
 
-var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
+var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,
+		      [traj_x,traj_y],
 		      density, speedInit,fracTruck, isRing, 
 		      userCanDistortRoads);
 
@@ -501,7 +504,7 @@ function drawSim() {
   mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
   // (4a) draw traffic signs (banButtonClicked => control_gui.js) MT 2020-01
-  console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
+  //console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
 
   if(backgroundJustDrawn||banButtonClicked){ // MT 2020-01
  

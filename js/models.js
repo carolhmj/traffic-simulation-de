@@ -40,7 +40,7 @@ function IDM(v0,T,s0,a,b){
 
     this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
     this.speedmax=1000; // if engine restricts speed, speedmax<speedlimit, v0
-    this.bmax=16;
+    this.bmax=18; //(2022) was=16
 }
 
 /**
@@ -168,12 +168,12 @@ function ACC(v0,T,s0,a,b){
   this.a=a;
   this.b=b;
 
-  this.cool=0.99;
+  this.cool=0.90; // !!also apply to copy constructor
   this.alpha_v0=1; // multiplicator for temporary reduction
 
   this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
   this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
-  this.bmax=18;
+  this.bmax=10; //!!! (jan2022) was =18
 
   //console.log("in ACC cstr: this.v0=",this.v0);
 }
@@ -196,7 +196,8 @@ ACC.prototype.copy=function(longModel){
   this.a=longModel.a;
   this.b=longModel.b;
 
-  this.cool=0.99;
+  // this.cool comes from cstr since not all longModels have .cool
+
   this.alpha_v0=1; // multiplicator for temporary reduction
 
     // possible restrictions (value 1000 => initially no restriction)
@@ -222,7 +223,7 @@ ACC acceleration function
 
 ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
-  if(s<0.001){return -this.bmax;}// particularly for s<0
+  if(s<0.5*this.s0){return -this.bmax;}// particularly for s<0
 
     // !!! acceleration noise to avoid some artifacts (no noise if s<s0)
     // sig_speedFluct=noiseAcc*sqrt(t*dt/12)
@@ -269,8 +270,9 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
 	//if(this.alpha_v0<0.6){ // alpha not yet used
 
+  //if(time<1.3){
+  //if(s<2){
   if(false){
-    //if(s<2){
     console.log("ACC.calcAcc:"
 		+" s="+parseFloat(s).toFixed(3)
 		      +" v="+parseFloat(v).toFixed(3)
@@ -364,7 +366,7 @@ function MOBIL(bSafe, bSafeMax, p, bThr, bBiasRight){
 }
 
 
-/**
+/*
 generalized MOBIL lane chaning decision
 with bSafe increasing with decrease vrel=v/v0
 but at present w/o politeness
